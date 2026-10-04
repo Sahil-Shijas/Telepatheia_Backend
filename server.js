@@ -38,17 +38,20 @@ const STUDENTS = [
   { id: 30, name: "Yashita Singh", gender: "Girl", glasses: "Yes", house: "G", commute_type: null, sport_events: "N", hair_type: "Wavy", prefect: "N" }
 ];
 
-// 2. Questions Mapping
+// 2. Expanded Questions Mapping (Includes House to split Avni & Shivika!)
 const QUESTIONS = [
   { key: "gender", value: "Boy", text: "Is your person a Boy?" },
   { key: "glasses", value: "Yes", text: "Does this person wear glasses?" },
   { key: "prefect", value: "Y", text: "Is this person a Prefect?" },
   { key: "sport_events", value: "Y", text: "Does this person participate in school sports events?" },
   { key: "commute_type", value: "W", text: "Does this person walk to school?" },
-  { key: "hair_type", value: "Straight", text: "Does this person have straight hair?" }
+  { key: "hair_type", value: "Straight", text: "Does this person have straight hair?" },
+  { key: "house", value: "Y", text: "Is this person in Yellow House?" },
+  { key: "house", value: "G", text: "Is this person in Green House?" },
+  { key: "house", value: "B", text: "Is this person in Blue House?" }
 ];
 
-// Context Extraction Helper
+// Context Helper
 function getContext(req, contextName) {
   const contexts = req.body.queryResult?.outputContexts || [];
   return contexts.find(c => c.name.endsWith(`/contexts/${contextName}`));
@@ -57,7 +60,6 @@ function getContext(req, contextName) {
 app.post('/webhook', (req, res) => {
   const action = req.body.queryResult.action;
 
-  // 1. GAME START ACTION
   if (action === 'game_start') {
     return res.json({
       fulfillmentText: `Think of any student in 10D! I will try to guess who it is.\n\n${QUESTIONS[0].text}`,
@@ -74,7 +76,6 @@ app.post('/webhook', (req, res) => {
     });
   }
 
-  // 2. PROCESS ANSWER ACTION
   if (action === 'process_answer') {
     const gameState = getContext(req, 'game_state');
 
@@ -87,7 +88,6 @@ app.post('/webhook', (req, res) => {
     const rawUserAnswer = (req.body.queryResult.parameters.user_answer || '').toLowerCase().trim();
     const isYes = ['yes', 'y', 'yeah', 'true'].includes(rawUserAnswer);
 
-    // CRITICAL FIX: Dialogflow auto-lowercases parameter names in contexts!
     const rawCandidateIds = gameState.parameters.candidateIds || gameState.parameters.candidateids;
     const candidateIds = Array.isArray(rawCandidateIds) ? rawCandidateIds : STUDENTS.map(s => s.id);
 
@@ -99,16 +99,14 @@ app.post('/webhook', (req, res) => {
     let candidates = STUDENTS.filter(s => candidateIds.includes(s.id));
     const currentQ = QUESTIONS[qIndex];
 
-    // Filter Candidates
+    // Correct Filtering
     if (isYes) {
       candidates = candidates.filter(s => s[currentQ.key] === currentQ.value);
     } else {
       candidates = candidates.filter(s => s[currentQ.key] !== currentQ.value);
     }
 
-    // --- GAME END CONDITIONS ---
-
-    // 1 match left
+    // 1 Candidate Left -> WIN
     if (candidates.length === 1) {
       return res.json({
         fulfillmentText: `Is your person **${candidates[0].name}**?`,
@@ -116,7 +114,7 @@ app.post('/webhook', (req, res) => {
       });
     }
 
-    // 0 matches left
+    // 0 Candidates Left
     if (candidates.length === 0) {
       return res.json({
         fulfillmentText: "Hmm, I couldn't find anyone matching those answers! Are you sure about all the traits?",
@@ -124,7 +122,7 @@ app.post('/webhook', (req, res) => {
       });
     }
 
-    // Out of questions
+    // Out of Questions
     if (qIndex + 1 >= QUESTIONS.length) {
       const names = candidates.map(c => c.name).join(", ");
       return res.json({
@@ -133,7 +131,7 @@ app.post('/webhook', (req, res) => {
       });
     }
 
-    // --- ADVANCE TO NEXT QUESTION ---
+    // Advance Question
     qIndex += 1;
     return res.json({
       fulfillmentText: `Got it! (${candidates.length} candidates remaining)\n\n${QUESTIONS[qIndex].text}`,
