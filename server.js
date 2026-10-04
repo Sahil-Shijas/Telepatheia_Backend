@@ -38,18 +38,47 @@ const STUDENTS = [
   { id: 30, name: "Yashita Singh", gender: "Girl", glasses: "Yes", house: "G", commute_type: null, sport_events: "N", hair_type: "Wavy", prefect: "N" }
 ];
 
-// 2. Questions Mapping
+// 2. Comprehensive Pool of Questions
 const QUESTIONS = [
   { id: 0, key: "gender", value: "Boy", text: "Is your person a Boy?" },
   { id: 1, key: "glasses", value: "Yes", text: "Does this person wear glasses?" },
   { id: 2, key: "prefect", value: "Y", text: "Is this person a Prefect?" },
   { id: 3, key: "sport_events", value: "Y", text: "Does this person participate in school sports events?" },
   { id: 4, key: "commute_type", value: "W", text: "Does this person walk to school?" },
-  { id: 5, key: "hair_type", value: "Straight", text: "Does this person have straight hair?" },
-  { id: 6, key: "house", value: "Y", text: "Is this person in Yellow House?" },
-  { id: 7, key: "house", value: "G", text: "Is this person in Green House?" },
-  { id: 8, key: "house", value: "B", text: "Is this person in Blue House?" }
+  { id: 5, key: "commute_type", value: "B", text: "Does this person take the school bus/car?" },
+  { id: 6, key: "hair_type", value: "Straight", text: "Does this person have straight hair?" },
+  { id: 7, key: "hair_type", value: "Curly", text: "Does this person have curly hair?" },
+  { id: 8, key: "hair_type", value: "Wavy", text: "Does this person have wavy hair?" },
+  { id: 9, key: "house", value: "Y", text: "Is this person in Yellow House?" },
+  { id: 10, key: "house", value: "G", text: "Is this person in Green House?" },
+  { id: 11, key: "house", value: "B", text: "Is this person in Blue House?" },
+  { id: 12, key: "house", value: "R", text: "Is this person in Red House?" }
 ];
+
+// Helper to find question that splits candidates best (50/50 split)
+function getBestNextQuestion(candidates, askedIds) {
+  const availableQuestions = QUESTIONS.filter(q => !askedIds.includes(q.id));
+  if (availableQuestions.length === 0) return null;
+
+  let bestQuestion = null;
+  let bestDifference = Infinity;
+
+  for (const q of availableQuestions) {
+    const yesCount = candidates.filter(s => s[q.key] === q.value).length;
+    // Skip questions where everyone or no one matches (useless questions)
+    if (yesCount === 0 || yesCount === candidates.length) continue;
+
+    // We want the question where yesCount is closest to half of total candidates
+    const difference = Math.abs(yesCount - (candidates.length / 2));
+    if (difference < bestDifference) {
+      bestDifference = difference;
+      bestQuestion = q;
+    }
+  }
+
+  // Fallback to first remaining question if no perfect splitter is found
+  return bestQuestion || availableQuestions[0];
+}
 
 // Helper to extract context
 function getContext(req, contextName) {
@@ -62,16 +91,19 @@ app.post('/webhook', (req, res) => {
 
   // 1. GAME START
   if (action === 'game_start') {
+    const initialCandidates = STUDENTS;
+    const firstQ = getBestNextQuestion(initialCandidates, []);
+
     return res.json({
-      fulfillmentText: `Think of any student in 10D! I will try to guess who it is.\n\n${QUESTIONS[0].text}`,
+      fulfillmentText: `Think of any student in 10D! I will try to guess who it is.\n\n${firstQ.text}`,
       outputContexts: [
         {
           name: `${req.body.session}/contexts/game_state`,
           lifespanCount: 15,
           parameters: {
-            candidateIds: STUDENTS.map(s => s.id),
-            askedQuestionIds: [0],
-            currentQId: 0
+            candidateIds: initialCandidates.map(s => s.id),
+            askedQuestionIds: [firstQ.id],
+            currentQId: firstQ.id
           }
         }
       ]
@@ -90,30 +122,24 @@ app.post('/webhook', (req, res) => {
 
     const params = gameState.parameters;
 
-    // --- CRITICAL FIX FOR YES/NO RECOGNITION ---
-    // Extract parameter OR fallback to raw text typed by user
+    // Detect Yes / No
     const paramVal = req.body.queryResult?.parameters?.user_answer || '';
     const rawText = req.body.queryResult?.queryText || '';
     const combinedInput = `${paramVal} ${rawText}`.toLowerCase();
-
-    // Check if user input contains affirmative keywords
     const yesPattern = /\b(yes|yeah|yep|yup|y|true|correct|sure|indeed)\b/i;
     const isYes = yesPattern.test(combinedInput);
 
-    // Extract candidates safely
+    // Extract state
     const rawCandidateIds = params.candidateIds || params.candidateids;
     const candidateIds = Array.isArray(rawCandidateIds) ? rawCandidateIds : STUDENTS.map(s => s.id);
 
-    const askedIds = params.askedQuestionIds || params.askedquestionids || [0];
+    const askedIds = params.askedQuestionIds || params.askedquestionids || [];
     const currentQId = params.currentQId !== undefined ? params.currentQId : (params.currentqid || 0);
 
     let candidates = STUDENTS.filter(s => candidateIds.includes(s.id));
     const currentQ = QUESTIONS.find(q => q.id === currentQId) || QUESTIONS[0];
 
-    // Debugging output to server log
-    console.log(`Input: "${rawText}" | Detected Yes: ${isYes} | Question: ${currentQ.text}`);
-
-    // Filter Candidates Based on Exact Current Question
+    // Filter candidates based on user's answer
     if (isYes) {
       candidates = candidates.filter(s => s[currentQ.key] === currentQ.value);
     } else {
@@ -122,7 +148,7 @@ app.post('/webhook', (req, res) => {
 
     // --- GAME END CONDITIONS ---
 
-    // 1 candidate remaining -> WIN
+    // 1 candidate remaining -> GUESS NAME
     if (candidates.length === 1) {
       return res.json({
         fulfillmentText: `Is your person **${candidates[0].name}**?`,
@@ -130,7 +156,7 @@ app.post('/webhook', (req, res) => {
       });
     }
 
-    // 0 candidates remaining -> NO MATCH
+    // 0 candidates remaining -> CONTRADICTION
     if (candidates.length === 0) {
       return res.json({
         fulfillmentText: "Hmm, I couldn't find anyone matching those answers! Are you sure about all the traits?",
@@ -138,28 +164,16 @@ app.post('/webhook', (req, res) => {
       });
     }
 
-    // --- SELECT NEXT BEST QUESTION ---
-    const availableQuestions = QUESTIONS.filter(q => !askedIds.includes(q.id));
+    // Pick the next optimal question dynamically
+    const nextQuestion = getBestNextQuestion(candidates, askedIds);
 
-    if (availableQuestions.length === 0) {
+    // If no more relevant questions exist, give the remaining list
+    if (!nextQuestion) {
       const names = candidates.map(c => c.name).join(", ");
       return res.json({
         fulfillmentText: `I couldn't narrow it down to just one person, but is it one of these: ${names}?`,
         outputContexts: [{ name: `${req.body.session}/contexts/game_state`, lifespanCount: 0 }]
       });
-    }
-
-    // Find question closest to splitting remaining candidates 50/50
-    let nextQuestion = availableQuestions[0];
-    let bestDiff = candidates.length;
-
-    for (const q of availableQuestions) {
-      const yesCount = candidates.filter(s => s[q.key] === q.value).length;
-      const diff = Math.abs(yesCount - (candidates.length / 2));
-      if (diff < bestDiff) {
-        bestDiff = diff;
-        nextQuestion = q;
-      }
     }
 
     const newAskedIds = [...askedIds, nextQuestion.id];
