@@ -51,14 +51,14 @@ const QUESTIONS = [
   { id: 8, key: "house", value: "B", text: "Is this person in Blue House?" }
 ];
 
-// Context Extraction Helper
+// Helper to extract context
 function getContext(req, contextName) {
   const contexts = req.body.queryResult?.outputContexts || [];
   return contexts.find(c => c.name.endsWith(`/contexts/${contextName}`));
 }
 
 app.post('/webhook', (req, res) => {
-  const action = req.body.queryResult.action;
+  const action = req.body.queryResult?.action;
 
   // 1. GAME START
   if (action === 'game_start') {
@@ -70,7 +70,7 @@ app.post('/webhook', (req, res) => {
           lifespanCount: 15,
           parameters: {
             candidateIds: STUDENTS.map(s => s.id),
-            askedQuestionIds: [0], // Track questions already asked
+            askedQuestionIds: [0],
             currentQId: 0
           }
         }
@@ -89,10 +89,18 @@ app.post('/webhook', (req, res) => {
     }
 
     const params = gameState.parameters;
-    const rawUserAnswer = (req.body.queryResult.parameters.user_answer || '').toLowerCase().trim();
-    const isYes = ['yes', 'y', 'yeah', 'true'].includes(rawUserAnswer);
 
-    // Extract Context Data securely
+    // --- CRITICAL FIX FOR YES/NO RECOGNITION ---
+    // Extract parameter OR fallback to raw text typed by user
+    const paramVal = req.body.queryResult?.parameters?.user_answer || '';
+    const rawText = req.body.queryResult?.queryText || '';
+    const combinedInput = `${paramVal} ${rawText}`.toLowerCase();
+
+    // Check if user input contains affirmative keywords
+    const yesPattern = /\b(yes|yeah|yep|yup|y|true|correct|sure|indeed)\b/i;
+    const isYes = yesPattern.test(combinedInput);
+
+    // Extract candidates safely
     const rawCandidateIds = params.candidateIds || params.candidateids;
     const candidateIds = Array.isArray(rawCandidateIds) ? rawCandidateIds : STUDENTS.map(s => s.id);
 
@@ -101,6 +109,9 @@ app.post('/webhook', (req, res) => {
 
     let candidates = STUDENTS.filter(s => candidateIds.includes(s.id));
     const currentQ = QUESTIONS.find(q => q.id === currentQId) || QUESTIONS[0];
+
+    // Debugging output to server log
+    console.log(`Input: "${rawText}" | Detected Yes: ${isYes} | Question: ${currentQ.text}`);
 
     // Filter Candidates Based on Exact Current Question
     if (isYes) {
@@ -128,7 +139,6 @@ app.post('/webhook', (req, res) => {
     }
 
     // --- SELECT NEXT BEST QUESTION ---
-    // Pick unasked question that best splits the remaining candidates
     const availableQuestions = QUESTIONS.filter(q => !askedIds.includes(q.id));
 
     if (availableQuestions.length === 0) {
@@ -139,7 +149,7 @@ app.post('/webhook', (req, res) => {
       });
     }
 
-    // Find question closest to 50/50 split of remaining candidates
+    // Find question closest to splitting remaining candidates 50/50
     let nextQuestion = availableQuestions[0];
     let bestDiff = candidates.length;
 
@@ -152,7 +162,6 @@ app.post('/webhook', (req, res) => {
       }
     }
 
-    // Update asked list
     const newAskedIds = [...askedIds, nextQuestion.id];
 
     return res.json({
