@@ -153,11 +153,20 @@ app.post('/webhook', (req, res) => {
 
     // --- GAME END CONDITIONS ---
 
-    // 1 candidate remaining -> GUESS NAME
+    // 1 candidate remaining -> GUESS NAME & SET AWAITING CONFIRMATION CONTEXT
     if (candidates.length === 1) {
       return res.json({
         fulfillmentText: `Is your person **${candidates[0].name}**?`,
-        outputContexts: [{ name: `${req.body.session}/contexts/game_state`, lifespanCount: 0 }]
+        outputContexts: [
+          {
+            name: `${req.body.session}/contexts/awaiting_guess_confirmation`,
+            lifespanCount: 2
+          },
+          {
+            name: `${req.body.session}/contexts/game_state`,
+            lifespanCount: 0
+          }
+        ]
       });
     }
 
@@ -177,7 +186,16 @@ app.post('/webhook', (req, res) => {
       const names = candidates.map(c => c.name).join(", ");
       return res.json({
         fulfillmentText: `I couldn't narrow it down to just one person, but is it one of these: ${names}?`,
-        outputContexts: [{ name: `${req.body.session}/contexts/game_state`, lifespanCount: 0 }]
+        outputContexts: [
+          {
+            name: `${req.body.session}/contexts/awaiting_guess_confirmation`,
+            lifespanCount: 2
+          },
+          {
+            name: `${req.body.session}/contexts/game_state`,
+            lifespanCount: 0
+          }
+        ]
       });
     }
 
@@ -195,6 +213,26 @@ app.post('/webhook', (req, res) => {
             currentQId: nextQuestion.id
           }
         }
+      ]
+    });
+  }
+
+  // 3. GUESS WAS CORRECT
+  if (action === 'guess_correct') {
+    return res.json({
+      fulfillmentText: "Woohoo! I knew it! 🎉 Thanks for playing with me. Say 'Start game' whenever you want to play again!",
+      outputContexts: [
+        { name: `${req.body.session}/contexts/awaiting_guess_confirmation`, lifespanCount: 0 }
+      ]
+    });
+  }
+
+  // 4. GUESS WAS WRONG
+  if (action === 'guess_incorrect') {
+    return res.json({
+      fulfillmentText: "Ah snap! You beat me this time! 😅 Check if all trait answers were exact. Say 'Start game' for a rematch!",
+      outputContexts: [
+        { name: `${req.body.session}/contexts/awaiting_guess_confirmation`, lifespanCount: 0 }
       ]
     });
   }
