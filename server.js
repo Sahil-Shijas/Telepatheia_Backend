@@ -57,6 +57,7 @@ function getContext(req, contextName) {
 app.post('/webhook', (req, res) => {
   const action = req.body.queryResult.action;
 
+  // 1. GAME START ACTION
   if (action === 'game_start') {
     return res.json({
       fulfillmentText: `Think of any student in 10D! I will try to guess who it is.\n\n${QUESTIONS[0].text}`,
@@ -73,6 +74,7 @@ app.post('/webhook', (req, res) => {
     });
   }
 
+  // 2. PROCESS ANSWER ACTION
   if (action === 'process_answer') {
     const gameState = getContext(req, 'game_state');
 
@@ -82,21 +84,31 @@ app.post('/webhook', (req, res) => {
       });
     }
 
-    const userAnswer = (req.body.queryResult.parameters.user_answer || '').toLowerCase();
-    const candidateIds = gameState.parameters.candidateIds || [];
-    let qIndex = gameState.parameters.questionIndex || 0;
+    const rawUserAnswer = (req.body.queryResult.parameters.user_answer || '').toLowerCase().trim();
+    const isYes = ['yes', 'y', 'yeah', 'true'].includes(rawUserAnswer);
+
+    // CRITICAL FIX: Dialogflow auto-lowercases parameter names in contexts!
+    const rawCandidateIds = gameState.parameters.candidateIds || gameState.parameters.candidateids;
+    const candidateIds = Array.isArray(rawCandidateIds) ? rawCandidateIds : STUDENTS.map(s => s.id);
+
+    let qIndex = gameState.parameters.questionIndex !== undefined 
+      ? gameState.parameters.questionIndex 
+      : gameState.parameters.questionindex;
+    if (qIndex === undefined) qIndex = 0;
 
     let candidates = STUDENTS.filter(s => candidateIds.includes(s.id));
     const currentQ = QUESTIONS[qIndex];
 
-    // Corrected Filtering Logic
-    if (userAnswer === 'yes') {
+    // Filter Candidates
+    if (isYes) {
       candidates = candidates.filter(s => s[currentQ.key] === currentQ.value);
     } else {
       candidates = candidates.filter(s => s[currentQ.key] !== currentQ.value);
     }
 
-    // Single Match Found
+    // --- GAME END CONDITIONS ---
+
+    // 1 match left
     if (candidates.length === 1) {
       return res.json({
         fulfillmentText: `Is your person **${candidates[0].name}**?`,
@@ -104,7 +116,7 @@ app.post('/webhook', (req, res) => {
       });
     }
 
-    // No Candidates Match
+    // 0 matches left
     if (candidates.length === 0) {
       return res.json({
         fulfillmentText: "Hmm, I couldn't find anyone matching those answers! Are you sure about all the traits?",
@@ -112,7 +124,7 @@ app.post('/webhook', (req, res) => {
       });
     }
 
-    // Out of Questions
+    // Out of questions
     if (qIndex + 1 >= QUESTIONS.length) {
       const names = candidates.map(c => c.name).join(", ");
       return res.json({
@@ -121,7 +133,7 @@ app.post('/webhook', (req, res) => {
       });
     }
 
-    // Advance to Next Question
+    // --- ADVANCE TO NEXT QUESTION ---
     qIndex += 1;
     return res.json({
       fulfillmentText: `Got it! (${candidates.length} candidates remaining)\n\n${QUESTIONS[qIndex].text}`,
