@@ -10,16 +10,16 @@ const STUDENTS = [
   { id: 2, name: "Aarav Prem Kumar", gender: "Boy", glasses: "Yes", house: "B", commute_type: "W", sport_events: "N", hair_type: "Normal", prefect: "N", stream: "NEET"  },
   { id: 3, name: "Aarika Sarkar", gender: "Girl", glasses: "Yes", house: "G", commute_type: "B", sport_events: "N", hair_type: "Straight", prefect: "N", stream: "NEET"  },
   { id: 4, name: "Aarna Vijayvargia", gender: "Girl", glasses: "Yes", house: "B", commute_type: "B", sport_events: "N", hair_type: "Straight", prefect: "Y", stream: "JEE"  },
-  { id: 5, name: "Aishi Dutta", gender: "Girl", glasses: "No", house: "Y", commute_type: "B", sport_events: "Y", hair_type: "Straight", prefect: "N", stream: null  },
+  { id: 5, name: "Aishi Dutta", gender: "Girl", glasses: "No", house: "Y", commute_type: "B", sport_events: "Y", hair_type: "Straight", prefect: "N", stream: "JEE"  },
   { id: 6, name: "Aniket Mishra", gender: "Boy", glasses: "No", house: "G", commute_type: "B", sport_events: "N", hair_type: "Straight", prefect: "N", stream: "JEE"  },
-  { id: 7, name: "Anirudh Sreejith", gender: "Boy", glasses: "No", house: "Y", commute_type: "W", sport_events: "N", hair_type: "Curly", prefect: "N", stream: "JEE" },
+  { id: 7, name: "Anirudh Sreejith", gender: "Boy", glasses: "No", house: "Y", commute_type: "B", sport_events: "N", hair_type: "Curly", prefect: "N", stream: "JEE" },
   { id: 8, name: "Anmol Gupta", gender: "Boy", glasses: "Yes", house: "R", commute_type: "B", sport_events: "N", hair_type: "Curly", prefect: "N", stream: "JEE" },
-  { id: 9, name: "Arsh Sachdeva", gender: "Boy", glasses: "Yes", house: "Y", commute_type: "B", sport_events: "N", hair_type: "Normal", prefect: "N", stream: null },
-  { id: 10, name: "Aryansh Bhadauria", gender: "Boy", glasses: "No", house: "G", commute_type: null, sport_events: "Y", hair_type: "Straight", prefect: "N", stream: "JEE"  },
+  { id: 9, name: "Arsh Sachdeva", gender: "Boy", glasses: "Yes", house: "Y", commute_type: "B", sport_events: "N", hair_type: "Normal", prefect: "N", stream: "Commerce" },
+  { id: 10, name: "Aryansh Bhadauria", gender: "Boy", glasses: "No", house: "G", commute_type: "B", sport_events: "Y", hair_type: "Straight", prefect: "N", stream: "JEE"  },
   { id: 11, name: "Avanika Raj", gender: "Girl", glasses: "Yes", house: "R", commute_type: "B", sport_events: "Y", hair_type: "Wavy", prefect: "Y", stream: "JEE" },
-  { id: 12, name: "Avni Anoop", gender: "Girl", glasses: "No", house: "Y", commute_type: null, sport_events: "N", hair_type: "Wavy", prefect: "N", stream: null },
+  { id: 12, name: "Avni Anoop", gender: "Girl", glasses: "No", house: "Y", commute_type: "B", sport_events: "N", hair_type: "Wavy", prefect: "N", stream: "Humanities" },
   { id: 13, name: "Deekshitaa Muthusamy", gender: "Girl", glasses: "Yes", house: "Y", commute_type: "B", sport_events: "Y", hair_type: "Wavy", prefect: "Y", stream: "NEET" },
-  { id: 14, name: "Jayant Mathur", gender: "Boy", glasses: "Yes", house: "B", commute_type: null, sport_events: "N", hair_type: "Normal", prefect: "N", stream: "JEE" },
+  { id: 14, name: "Jayant Mathur", gender: "Boy", glasses: "Yes", house: "B", commute_type: "B", sport_events: "N", hair_type: "Normal", prefect: "N", stream: "JEE" },
   { id: 15, name: "Krisha Arunkumar", gender: "Girl", glasses: "No", house: "R", commute_type: "B", sport_events: "Y", hair_type: "Curly", prefect: "N", stream: "JEE" },
   { id: 16, name: "Mishka Bhargava", gender: "Girl", glasses: "No", house: "B", commute_type: "B", sport_events: "Y", hair_type: "Straight", prefect: "N", stream: "Architecture/Design" },
   { id: 17, name: "Md Areeb", gender: "Boy", glasses: "Yes", house: "G", commute_type: "W", sport_events: "N", hair_type: "Normal", prefect: "N", stream: "JEE" },
@@ -29,13 +29,13 @@ const STUDENTS = [
   { id: 21, name: "Sai Shreshta Dabbiru", gender: "Girl", glasses: "No", house: "G", commute_type: "W", sport_events: "N", hair_type: "Wavy", prefect: "N", stream: "NEET" },
   { id: 22, name: "Saksham Rastogi", gender: "Boy", glasses: "No", house: "Y", commute_type: "B", sport_events: "N", hair_type: "Normal", prefect: "N", stream: "JEE" },
   { id: 23, name: "Sattwik Sen", gender: "Boy", glasses: "Yes", house: "Y", commute_type: "W", sport_events: "N", hair_type: "Normal", prefect: "N", stream: "NEET" },
-  { id: 24, name: "Shivika Sharma", gender: "Girl", glasses: "No", house: "G", commute_type: null, sport_events: "N", hair_type: "Wavy", prefect: "N", stream: null },
+  { id: 24, name: "Shivika Sharma", gender: "Girl", glasses: "No", house: "G", commute_type: "B", sport_events: "N", hair_type: "Wavy", prefect: "N", stream: null },
   { id: 25, name: "Shlok Gupta", gender: "Boy", glasses: "No", house: "B", commute_type: "W", sport_events: "Y", hair_type: "Curly", prefect: "N", stream: "JEE" },
-  { id: 26, name: "Sriram Alwala", gender: "Boy", glasses: "Yes", house: "R", commute_type: null, sport_events: "N", hair_type: "Curly", prefect: "N", stream: null },
-  { id: 27, name: "Tasmai Rajamanya", gender: "Girl", glasses: "Yes", house: "B", commute_type: null, sport_events: "N", hair_type: "Wavy", prefect: "N", stream: "Law/CLAT" },
-  { id: 28, name: "Toshani Mohapatra", gender: "Girl", glasses: "Yes", house: "B", commute_type: null, sport_events: "N", hair_type: "Wavy", prefect: "N", stream: "JEE" },
+  { id: 26, name: "Sriram Alwala", gender: "Boy", glasses: "Yes", house: "R", commute_type: "B", sport_events: "N", hair_type: "Curly", prefect: "N", stream: "JEE" },
+  { id: 27, name: "Tasmai Rajamanya", gender: "Girl", glasses: "Yes", house: "B", commute_type: "B", sport_events: "N", hair_type: "Wavy", prefect: "N", stream: "Law/CLAT" },
+  { id: 28, name: "Toshani Mohapatra", gender: "Girl", glasses: "Yes", house: "B", commute_type: "B", sport_events: "N", hair_type: "Wavy", prefect: "N", stream: "NEET" },
   { id: 29, name: "Vidhip Singh", gender: "Boy", glasses: "Yes", house: "B", commute_type: "W", sport_events: "N", hair_type: "Normal", prefect: "N", stream: "JEE" },
-  { id: 30, name: "Yashita Singh", gender: "Girl", glasses: "Yes", house: "G", commute_type: null, sport_events: "N", hair_type: "Wavy", prefect: "N", stream: "Architecture/Design" }
+  { id: 30, name: "Yashita Singh", gender: "Girl", glasses: "Yes", house: "G", commute_type: "B", sport_events: "N", hair_type: "Wavy", prefect: "N", stream: "Architecture/Design" }
 ];
 
 // 2. Comprehensive Pool of Questions
@@ -44,7 +44,7 @@ const QUESTIONS = [
   { id: 1, key: "glasses", value: "Yes", text: "Does this person wear glasses?" },
   { id: 2, key: "prefect", value: "Y", text: "Is this person a Prefect?" },
   { id: 3, key: "sport_events", value: "Y", text: "Does this person participate in school sports events?" },
-  { id: 4, key: "commute_type", value: "W", text: "Does this person walk to school?" },
+  { id: 4, key: "commute_type", value: "W", text: "Is your person a walkie?" },
   { id: 5, key: "commute_type", value: "B", text: "Does this person take the school bus?" },
   { id: 6, key: "hair_type", value: "Straight", text: "Does this person have straight hair?" },
   { id: 7, key: "hair_type", value: "Curly", text: "Does this person have curly hair?" },
@@ -57,7 +57,8 @@ const QUESTIONS = [
   { id: 14, key: "stream", value: "NEET", text: "Did this person opt for NEET?"},
   { id: 15, key: "stream", value: "Law/CLAT", text: "Did this person opt for Law/CLAT?"},
   { id: 16, key: "stream", value: "Architecture/Design", text: "Did this person opt for Architecture or Design?"},
-  { id: 17, key: "stream", value: "Commerce", text: "Did this person opt for Commerce?"}
+  { id: 17, key: "stream", value: "Commerce", text: "Did this person opt for Commerce?"},
+  { id: 18, key: "stream", value: "Humanities", text: "Did this person opt for Humanities?"}
 ];
 
 // Helper to find question that splits candidates best (50/50 split)
