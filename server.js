@@ -243,10 +243,10 @@ app.post('/webhook', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.use(express.static(webpage));
+app.use(express.static(__dirname));
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(webpage, 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
