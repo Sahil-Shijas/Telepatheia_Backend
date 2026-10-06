@@ -1,9 +1,59 @@
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
+const dialogflow = require('@google-cloud/dialogflow');
 
 const app = express();
 app.use(bodyParser.json());
+app.use(express.static(__dirname));
+
+// Initialize Dialogflow Client using environment variables or key.json
+let sessionClient;
+if (process.env.GOOGLE_CREDENTIALS) {
+  const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+  sessionClient = new dialogflow.SessionsClient({ credentials });
+} else {
+  sessionClient = new dialogflow.SessionsClient({
+    keyFilename: path.join(__dirname, 'key.json')
+  });
+}
+
+const PROJECT_ID = 'telepatheia-10d-awhu';
+
+// Serve frontend page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Proxy endpoint for index.html chat frontend
+app.post('/api/chat', async (req, res) => {
+  const { message, sessionId } = req.body;
+  const currentSessionId = sessionId || 'session-' + Date.now();
+
+  const sessionPath = sessionClient.projectAgentSessionPath(PROJECT_ID, currentSessionId);
+
+  const request = {
+    session: sessionPath,
+    queryInput: {
+      text: {
+        text: message,
+        languageCode: 'en',
+      },
+    },
+  };
+
+  try {
+    const responses = await sessionClient.detectIntent(request);
+    const result = responses[0].queryResult;
+
+    res.json({
+      fulfillmentText: result.fulfillmentText || 'No response received from agent.'
+    });
+  } catch (error) {
+    console.error('Dialogflow API Error:', error);
+    res.status(500).json({ fulfillmentText: 'Error connecting to Dialogflow agent.' });
+  }
+});
 
 // 1. Student Dataset
 const STUDENTS = [
@@ -72,10 +122,8 @@ function getBestNextQuestion(candidates, askedIds) {
 
   for (const q of availableQuestions) {
     const yesCount = candidates.filter(s => s[q.key] === q.value).length;
-    // Skip questions where everyone or no one matches (useless questions)
     if (yesCount === 0 || yesCount === candidates.length) continue;
 
-    // We want the question where yesCount is closest to half of total candidates
     const difference = Math.abs(yesCount - (candidates.length / 2));
     if (difference < bestDifference) {
       bestDifference = difference;
@@ -83,7 +131,6 @@ function getBestNextQuestion(candidates, askedIds) {
     }
   }
 
-  // Fallback to first remaining question if no perfect splitter is found
   return bestQuestion || availableQuestions[0];
 }
 
@@ -93,6 +140,7 @@ function getContext(req, contextName) {
   return contexts.find(c => c.name.endsWith(`/contexts/${contextName}`));
 }
 
+// Dialogflow Fulfillment Webhook
 app.post('/webhook', (req, res) => {
   const action = req.body.queryResult?.action;
 
@@ -129,14 +177,12 @@ app.post('/webhook', (req, res) => {
 
     const params = gameState.parameters;
 
-    // Detect Yes / No
     const paramVal = req.body.queryResult?.parameters?.user_answer || '';
     const rawText = req.body.queryResult?.queryText || '';
     const combinedInput = `${paramVal} ${rawText}`.toLowerCase();
     const yesPattern = /\b(yes|yeah|yep|yup|y|true|correct|sure|indeed)\b/i;
     const isYes = yesPattern.test(combinedInput);
 
-    // Extract state
     const rawCandidateIds = params.candidateIds || params.candidateids;
     const candidateIds = Array.isArray(rawCandidateIds) ? rawCandidateIds : STUDENTS.map(s => s.id);
 
@@ -146,16 +192,12 @@ app.post('/webhook', (req, res) => {
     let candidates = STUDENTS.filter(s => candidateIds.includes(s.id));
     const currentQ = QUESTIONS.find(q => q.id === currentQId) || QUESTIONS[0];
 
-    // Filter candidates based on user's answer
     if (isYes) {
       candidates = candidates.filter(s => s[currentQ.key] === currentQ.value);
     } else {
       candidates = candidates.filter(s => s[currentQ.key] !== currentQ.value);
     }
 
-    // --- GAME END CONDITIONS ---
-
-    // 1 candidate remaining -> GUESS NAME & SET AWAITING CONFIRMATION CONTEXT
     if (candidates.length === 1) {
       return res.json({
         fulfillmentText: `Is your person **${candidates[0].name}**?`,
@@ -172,7 +214,6 @@ app.post('/webhook', (req, res) => {
       });
     }
 
-    // 0 candidates remaining -> CONTRADICTION
     if (candidates.length === 0) {
       return res.json({
         fulfillmentText: "Hmm, I couldn't find anyone matching those answers! Are you sure about all the traits?",
@@ -180,10 +221,8 @@ app.post('/webhook', (req, res) => {
       });
     }
 
-    // Pick the next optimal question dynamically
     const nextQuestion = getBestNextQuestion(candidates, askedIds);
 
-    // If no more relevant questions exist, give the remaining list
     if (!nextQuestion) {
       const names = candidates.map(c => c.name).join(", ");
       return res.json({
@@ -243,11 +282,6 @@ app.post('/webhook', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.use(express.static(__dirname));
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
