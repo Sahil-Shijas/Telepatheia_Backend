@@ -42,16 +42,6 @@ app.post('/api/chat', async (req, res) => {
     },
   };
 
-  // Trigger 'game_start' intent/event directly when user starts a game
-  if (message.toLowerCase().includes('start')) {
-    request.queryInput = {
-      event: {
-        name: 'game_start',
-        languageCode: 'en',
-      },
-    };
-  }
-
   try {
     const responses = await sessionClient.detectIntent(request);
     const result = responses[0].queryResult;
