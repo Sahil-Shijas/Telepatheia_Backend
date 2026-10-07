@@ -48,6 +48,7 @@
       border-radius: 12px;
       font-size: 0.95rem;
       line-height: 1.4;
+      white-space: pre-wrap;
     }
     .bot { background: #2b2b3d; align-self: flex-start; color: #e1e1e6; }
     .user { background: #007bff; align-self: flex-end; color: #fff; }
@@ -89,41 +90,54 @@
     <div class="messages" id="chat">
       <div class="msg bot">Hello! Think of anyone in Class 10D and type <strong>Start game</strong> to begin!</div>
     </div>
-    <div class="input-box">
-      <input type="text" id="userInput" placeholder="Type your answer..." onkeypress="if(event.key==='Enter') sendMessage()">
-      <button onclick="sendMessage()">Send</button>
-    </div>
+    <form class="input-box" onsubmit="sendMessage(event)">
+      <input type="text" id="userInput" placeholder="Type your answer..." autocomplete="off">
+      <button type="submit">Send</button>
+    </form>
   </div>
 
   <script>
-    // Relative path connects automatically when hosted on the same Render server
-    const RENDER_WEBHOOK_URL = "/webhook";
+    // Points to the proxy endpoint configured in server.js
+    const CHAT_API_URL = "/api/chat";
 
-    async function sendMessage() {
+    // Manage or generate session ID for persistent Dialogflow context
+    let sessionId = localStorage.getItem("telepatheia_session_id");
+    if (!sessionId) {
+      sessionId = "session-" + Math.random().toString(36).substring(2, 9);
+      localStorage.setItem("telepatheia_session_id", sessionId);
+    }
+
+    async function sendMessage(event) {
+      if (event) event.preventDefault();
+
       const input = document.getElementById("userInput");
       const text = input.value.trim();
       if (!text) return;
+
+      // Generate a fresh session ID whenever a brand new game starts
+      if (text.toLowerCase().includes("start")) {
+        sessionId = "session-" + Math.random().toString(36).substring(2, 9);
+        localStorage.setItem("telepatheia_session_id", sessionId);
+      }
 
       appendMessage(text, "user");
       input.value = "";
 
       try {
-        const response = await fetch(RENDER_WEBHOOK_URL, {
+        const response = await fetch(CHAT_API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            queryResult: {
-              queryText: text,
-              intent: { displayName: text.toLowerCase().includes("start") ? "game_start" : "user_response" }
-            }
+            message: text,
+            sessionId: sessionId
           })
         });
 
         const data = await response.json();
-        const reply = data.fulfillmentText || (data.fulfillmentMessages && data.fulfillmentMessages[0]?.text?.text[0]) || "No response received.";
+        const reply = data.fulfillmentText || "No response received.";
         appendMessage(reply, "bot");
       } catch (err) {
-        appendMessage("⚠️ Could not connect to Render backend. Make sure the server is awake!", "bot");
+        appendMessage("⚠️ Could not connect to backend. Make sure the server is awake!", "bot");
       }
     }
 
@@ -131,7 +145,13 @@
       const chat = document.getElementById("chat");
       const msgDiv = document.createElement("div");
       msgDiv.className = `msg ${sender}`;
-      msgDiv.innerHTML = text;
+
+      // Convert basic markdown formatting like **bold** to HTML
+      let formattedText = text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+
+      msgDiv.innerHTML = formattedText;
       chat.appendChild(msgDiv);
       chat.scrollTop = chat.scrollHeight;
     }
