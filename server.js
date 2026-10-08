@@ -80,7 +80,7 @@ const STUDENTS = [
   { id: 20, name: "Sahil", gender: "Boy", glasses: "No", house: "B", commute_type: "W", sport_events: "Y", hair_type: "Normal", prefect: "N", stream: "JEE" },
   { id: 21, name: "Sai Shreshta Dabbiru", gender: "Girl", glasses: "No", house: "G", commute_type: "W", sport_events: "N", hair_type: "Wavy", prefect: "N", stream: "NEET" },
   { id: 22, name: "Saksham Rastogi", gender: "Boy", glasses: "No", house: "Y", commute_type: "B", sport_events: "N", hair_type: "Normal", prefect: "N", stream: "JEE" },
-  { id: 23, name: "Sattwik Sen", gender: "Boy", glasses: "Yes", house: "Y", commute_type: "W", sport_events: "N", hair_type: "Normal", prefect: "N", stream: "NEET" },
+  { id: 23, name: "Sattwik Sen", gender: "Boy", glasses: "Yes", house: "Y", commute_type: "W", sport_events: "N", hair_type: "Normal", prefect: "N", stream: "JEE" },
   { id: 24, name: "Shivika Sharma", gender: "Girl", glasses: "No", house: "G", commute_type: "B", sport_events: "N", hair_type: "Wavy", prefect: "N", stream: null },
   { id: 25, name: "Shlok Gupta", gender: "Boy", glasses: "No", house: "B", commute_type: "W", sport_events: "Y", hair_type: "Curly", prefect: "N", stream: "JEE" },
   { id: 26, name: "Sriram Alwala", gender: "Boy", glasses: "Yes", house: "R", commute_type: "B", sport_events: "N", hair_type: "Curly", prefect: "N", stream: "JEE" },
