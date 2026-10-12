@@ -77,11 +77,11 @@ const STUDENTS = [
   { id: 17, name: "Md Areeb", gender: "Boy", glasses: "Yes", house: "G", commute_type: "W", sport_events: "N", hair_type: "Normal", prefect: "N", stream: "JEE" },
   { id: 18, name: "Rishaan", gender: "Boy", glasses: "No", house: "B", commute_type: "B", sport_events: "N", hair_type: "Normal", prefect: "N", stream: "NEET" },
   { id: 19, name: "Ronit Kapoor", gender: "Boy", glasses: "Yes", house: "G", commute_type: "B", sport_events: "Y", hair_type: "Normal", prefect: "N", stream: "Law/CLAT" },
-  { id: 20, name: "Sahil", gender: "Boy", glasses: "No", house: "B", commute_type: "W", sport_events: "Y", hair_type: "Normal", prefect: "N", stream: "JEE" },
+  { id: 20, name: "Sahil(The Founder)", gender: "Boy", glasses: "No", house: "B", commute_type: "W", sport_events: "Y", hair_type: "Normal", prefect: "N", stream: "JEE" },
   { id: 21, name: "Sai Shreshta Dabbiru", gender: "Girl", glasses: "No", house: "G", commute_type: "W", sport_events: "N", hair_type: "Wavy", prefect: "N", stream: "NEET" },
   { id: 22, name: "Saksham Rastogi", gender: "Boy", glasses: "No", house: "Y", commute_type: "B", sport_events: "N", hair_type: "Normal", prefect: "N", stream: "JEE" },
   { id: 23, name: "Sattwik Sen", gender: "Boy", glasses: "Yes", house: "Y", commute_type: "W", sport_events: "N", hair_type: "Normal", prefect: "N", stream: "JEE" },
-  { id: 24, name: "Shivika Sharma", gender: "Girl", glasses: "No", house: "G", commute_type: "B", sport_events: "N", hair_type: "Wavy", prefect: "N", stream: null },
+  { id: 24, name: "Shivika Sharma", gender: "Girl", glasses: "No", house: "G", commute_type: "B", sport_events: "N", hair_type: "Wavy", prefect: "N", stream: "NDA" },
   { id: 25, name: "Shlok Gupta", gender: "Boy", glasses: "No", house: "B", commute_type: "W", sport_events: "Y", hair_type: "Curly", prefect: "N", stream: "JEE" },
   { id: 26, name: "Sriram Alwala", gender: "Boy", glasses: "Yes", house: "R", commute_type: "B", sport_events: "N", hair_type: "Curly", prefect: "N", stream: "JEE" },
   { id: 27, name: "Tasmai Rajamanya", gender: "Girl", glasses: "Yes", house: "B", commute_type: "B", sport_events: "N", hair_type: "Wavy", prefect: "N", stream: "Law/CLAT" },
@@ -110,7 +110,8 @@ const QUESTIONS = [
   { id: 15, key: "stream", value: "Law/CLAT", text: "Did this person opt for Law/CLAT?"},
   { id: 16, key: "stream", value: "Architecture/Design", text: "Did this person opt for Architecture or Design?"},
   { id: 17, key: "stream", value: "Commerce", text: "Did this person opt for Commerce?"},
-  { id: 18, key: "stream", value: "Humanities", text: "Did this person opt for Humanities?"}
+  { id: 18, key: "stream", value: "Humanities", text: "Did this person opt for Humanities?"},
+  { id: 19, key: "stream", value: "NDA", text: "Is this person interested in NDA(Defence Institute)?"}
 ];
 
 // Helper to find question that splits candidates best (50/50 split)
